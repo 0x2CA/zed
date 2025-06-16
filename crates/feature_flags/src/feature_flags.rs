@@ -92,27 +92,31 @@ where
         window: &mut Window,
         callback: impl Fn(&mut V, &mut Window, &mut Context<V>) + Send + Sync + 'static,
     ) {
-        if self
-            .try_global::<FeatureFlags>()
-            .is_some_and(|f| f.has_flag::<T>())
-        {
-            self.defer_in(window, move |view, window, cx| {
-                callback(view, window, cx);
-            });
-            return;
-        }
-        let subscription = Rc::new(RefCell::new(None));
-        let inner = self.observe_global_in::<FeatureFlags>(window, {
-            let subscription = subscription.clone();
-            move |v, window, cx| {
-                let feature_flags = cx.global::<FeatureFlags>();
-                if feature_flags.has_flag::<T>() {
-                    callback(v, window, cx);
-                    subscription.take();
-                }
-            }
+        self.defer_in(window, move |view, window, cx| {
+            callback(view, window, cx);
         });
-        subscription.borrow_mut().replace(inner);
+        return;
+        // if self
+        //     .try_global::<FeatureFlags>()
+        //     .is_some_and(|f| f.has_flag::<T>())
+        // {
+        //     self.defer_in(window, move |view, window, cx| {
+        //         callback(view, window, cx);
+        //     });
+        //     return;
+        // }
+        // let subscription = Rc::new(RefCell::new(None));
+        // let inner = self.observe_global_in::<FeatureFlags>(window, {
+        //     let subscription = subscription.clone();
+        //     move |v, window, cx| {
+        //         let feature_flags = cx.global::<FeatureFlags>();
+        //         if feature_flags.has_flag::<T>() {
+        //             callback(v, window, cx);
+        //             subscription.take();
+        //         }
+        //     }
+        // });
+        // subscription.borrow_mut().replace(inner);
     }
 }
 
